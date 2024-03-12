@@ -583,7 +583,7 @@ GameObject:
   - component: {fileID: 8912004591843981695}
   - component: {fileID: 7468697858013047169}
   m_Layer: 5
-  m_Name: img_gridItem
+  m_Name: go_gridItem
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -872,7 +872,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   go_moving: {fileID: 5046067498868190829}
   go_fixed: {fileID: 1771665573531839702}
-  img_gridItem: {fileID: 7468697858013047169}
+  go_gridItem: {fileID: 1377783854061130636}
 --- !u!1 &1510915610220540663
 GameObject:
   m_ObjectHideFlags: 0
