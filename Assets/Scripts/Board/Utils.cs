@@ -40,7 +40,7 @@ namespace Tetris.Runtime
                 var range = (int)Mathf.Pow(2, size) - 1;
                 for (int i = 0; i < binaryArray.Length; i++)
                 {
-                    newBinaryArray[i] = (binaryArray[i] << (boardWidth - x)) & range;
+                    newBinaryArray[i] = ((binaryArray[i] << (size - (boardWidth - x))) & range) << (boardWidth - size);
                 }
                 return newBinaryArray;
             }
