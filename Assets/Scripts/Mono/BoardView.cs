@@ -3,7 +3,6 @@ using System.Collections;
 using System.Collections.Generic;
 using Tetris.Runtime;
 using UnityEngine;
-using static Tetris.Runtime.BoardDefine;
 
 
 public class BoardView : MonoBehaviour, IBoardView
@@ -34,7 +33,7 @@ public class BoardView : MonoBehaviour, IBoardView
         //DrawFixedBoard();
         //DrawBlock(Block.I);
         //gameStatus = GameStatus.Running;
-        boardMgr.Init(this);
+        boardMgr.Init(this, BOARD_WIDTH, BOARD_HEIGHT);
         boardMgr.StartGame();
     }
 

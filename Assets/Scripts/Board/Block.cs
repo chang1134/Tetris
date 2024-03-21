@@ -33,28 +33,17 @@ namespace Tetris.Runtime
         public RectInt rect { 
             get {
                 if (this._rect.width == 0) 
-                    this._rect = GetRect(this);
+                    this._rect = GetRect(this.data);
                 return this._rect; 
             }
         }
 
         private int[] _bynaryArray;
 
-        public int[] bynaryArray
+        public int[] binaryArray
         {
-            get {  
-                if (_bynaryArray == null)
-                {
-                    _bynaryArray = new int[size];
-                    for (int i = 0; i < size; i++)
-                    {
-                        var newIdx = i * size;
-                        for (int j = newIdx; j < newIdx + size; j++)
-                        {
-                            _bynaryArray[i] += this.data[j] > 0 ? (int)Math.Pow(2, j - newIdx) : 0;
-                        }
-                    }
-                }
+            get {
+                _bynaryArray = _bynaryArray ?? ToBinaryArray(this.data);
                 return _bynaryArray; 
             }
         }
@@ -115,6 +104,21 @@ namespace Tetris.Runtime
                 }
             }
             return new RectInt(minX, minY, maxX - minX + 1, maxY - minY + 1);
+        }
+
+        public static int[] ToBinaryArray(int[] data)
+        {
+            var size = (int)Mathf.Sqrt(data.Length);
+            var bynaryArray = new int[size];
+            for (int i = 0; i < size; i++)
+            {
+                var newIdx = i * size;
+                for (int j = newIdx; j < newIdx + size; j++)
+                {
+                    bynaryArray[i] += data[j] > 0 ? (int)Math.Pow(2, j - newIdx) : 0;
+                }
+            }
+            return bynaryArray;
         }
 
         public static int MAX_SIZE = 4;

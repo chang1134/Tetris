@@ -791,7 +791,7 @@ GameObject:
   - component: {fileID: 5067854522534893777}
   - component: {fileID: 4296607534304405997}
   - component: {fileID: 6798868112891031436}
-  - component: {fileID: 279150086152888975}
+  - component: {fileID: 4216399850900202481}
   m_Layer: 5
   m_Name: Board
   m_TagString: Untagged
@@ -858,7 +858,7 @@ MonoBehaviour:
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
   m_PixelsPerUnitMultiplier: 1
---- !u!114 &279150086152888975
+--- !u!114 &4216399850900202481
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -867,7 +867,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 1416569325240196798}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: ca9bfe6d486dd8847b90b12abe7e7def, type: 3}
+  m_Script: {fileID: 11500000, guid: 1ed433ff2a3215149b10abeceae122f9, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   go_moving: {fileID: 5046067498868190829}

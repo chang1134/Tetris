@@ -24,5 +24,18 @@ namespace Tetris.Runtime
                 this.datas[i] |= targetBoard.datas[i];
             }
         }
+
+        /**
+         * 判断是否游戏结束
+         * 1. 非可视区域存在数据
+         */
+        public bool IsGameOver()
+        {
+            for (int i = this.datas.Length - Block.MAX_SIZE; i < this.datas.Length; i++)
+            {
+                if (this.datas[i] > 0) return true;
+            }
+            return false;
+        }
     }
 }

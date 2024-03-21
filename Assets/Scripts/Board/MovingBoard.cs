@@ -69,78 +69,40 @@ namespace Tetris.Runtime
                 {
                     if (this.x >= 0)
                     {
-                        this.datas[this.y - i] = this.block.bynaryArray[i] << this.x;
+                        this.datas[this.y - i] = this.block.binaryArray[i] << this.x;
                     } else
                     {
-                        this.datas[this.y - i] = this.block.bynaryArray[i] >> Math.Abs(this.x);
+                        this.datas[this.y - i] = this.block.binaryArray[i] >> Math.Abs(this.x);
                     }
                 }
             }
         }
 
         /**
-         * 默认下落一格，
-         * toBottom为true时，下落至底端
-         * 
-         * return true表示移动成功（移动后，板块有效数据不会超出棋盘）
+         * 下落一格
          */
-        public bool Down(bool toBottom = false)
+        public void Down()
         {
-            if (toBottom)
-            {
-                var offsetY = this.block.size - this.block.rect.y - this.block.rect.height;
-                if (this.y == -offsetY) return false;
-                this.y = -offsetY;
-            }
-            else
-            {
-                if (CheckOutBounding(x, y - 1, this.block.rect)) return false;
-                this.y -= 1;
-            }
+            this.y -= 1;
             this.UpdateBoard();
-            return true;
         }
 
-        public bool Left()
+        public void Left()
         {
-            if (CheckOutBounding(x - 1, y, this.block.rect)) return false;
-
             this.x -= 1;
             this.UpdateBoard();
-            return true;
         }
 
-        public bool Right()
+        public void Right()
         {
-            if (CheckOutBounding(x + 1, y, this.block.rect)) return false;
-
             this.x += 1;
             this.UpdateBoard();
-            return true;
         }
 
-        public bool Rotate()
+        public void Rotate()
         {
-            var rotatedBlockData = Block.Rotate(this.block.data);
-            var rect = Block.GetRect(rotatedBlockData);
-            if (this.CheckOutBounding(x, y, rect)) return false;
             this.block.Rotate();
             this.UpdateBoard();
-            return true;
-        }
-
-        /**
-         * 检查移动或旋转后的板块的有效数据是否会超出棋盘
-         */
-        private bool CheckOutBounding(int x, int y, RectInt rect)
-        {
-            // 检查左边
-            if (x + rect.x - 1 < 0) return true;
-            // 检查右边
-            if (x + rect.x + rect.width + 1 >= this.boardWidth) return true;
-            // 检查底部
-            if (y + this.block.size - rect.x - rect.width - 1 < 0) return true;
-            return false;
         }
     }
 }

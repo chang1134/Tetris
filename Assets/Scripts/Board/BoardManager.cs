@@ -1,35 +1,17 @@
 using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Drawing;
-using System.Reflection;
 using UnityEngine;
-using UnityEngine.UI;
-using static Tetris.Runtime.BoardDefine;
 
 namespace Tetris.Runtime
 {
-
-
     public class BoardManager
     {
-
-
-
-        private static int BOARD_WIDTH = 10;
-        private static int BOARD_HEIGHT = 20;
+        private int boardWidth;
+        private int boardHeight;
 
         public GameObject go_moving;
         public GameObject go_fixed;
 
         public GameObject go_gridItem;
-
-        // 棋盘上正在使用的棋子
-        private Dictionary<int, Transform> fixedItemMap = new Dictionary<int, Transform>();
-        private Dictionary<int, Transform> movingItemMap = new Dictionary<int, Transform>();
-
-        // 隐藏的缓存棋子
-        private List<Transform> cacheItems = new List<Transform>();
 
         private GameStatus _gameStatus = GameStatus.Prepare;
 
@@ -45,18 +27,20 @@ namespace Tetris.Runtime
 
         private IBoardView view;
 
-        public void Init(IBoardView view)
+        public void Init(IBoardView view, int boardWidth, int boardHeight)
         {
             this.view = view;
-            this.movingBoard = new MovingBoard(BOARD_HEIGHT, BOARD_WIDTH);
-            this.fixedBoard = new FixedBoard(BOARD_HEIGHT, BOARD_WIDTH);
+            this.boardWidth = boardWidth;
+            this.boardHeight = boardHeight;
+            this.movingBoard = new MovingBoard(boardWidth, boardHeight);
+            this.fixedBoard = new FixedBoard(boardWidth, boardHeight);
         }
 
         public void StartGame()
         {
             // 需要先播放开场动画
             gameStatus = GameStatus.Running;
-            nextDownWaitingTime = 0; 
+            nextDownWaitingTime = 0;
 
             CleanNextBlock();
             // 游戏开始时，先准备下一个板块
@@ -83,27 +67,18 @@ namespace Tetris.Runtime
             switch (operation)
             {
                 case BlockOperation.Down:
-                    //if (!checkNextStepReachable())
-                    //{
-                    //    // 当前板块已经停止，需要检测板块是否完全显示在棋盘上
-                    //    // 如果没有，则游戏结束
-                    //    // 如果有， 则需要并入Fixed棋盘
-                    //    gameStatus = GameStatus.GameOver;
-                    //    return;
-                    //}
-                    if (!checkNextStepReachable()) // 下方是最后一层 或者 下方已经存在阻挡的格子
+                    if (!canDown())
                     {
                         // 跟固定棋盘进行合并
                         this.fixedBoard.Combine(this.movingBoard);
                         view.DrawFixedBoard(this.fixedBoard.datas);
-                        if (movingBoard.board[BOARD_HEIGHT] == 0)
-                        {
-                            RunNextBlock();
-                        }
-                        else
+                        if (this.fixedBoard.IsGameOver())
                         {
                             gameStatus = GameStatus.GameOver;
                             Debug.Log("游戏结束");
+                        } else
+                        {
+                            RunNextBlock();
                         }
                         return;
                     }
@@ -112,49 +87,16 @@ namespace Tetris.Runtime
                     break;
                 case BlockOperation.Left:
                     {
-                        var length = Math.Max(movingBoard.lineBlockInfo.lineBlockData.Length, movingBoard.board.Length - movingBoard.lineBlockInfo.blockPosY);
-
-                        // 所有移动中的棋子左移一格
-                        var isOutRange = false;
-                        for (int i = 0; i < length; i++)
-                        {
-                            var index = movingBoard.y + i;
-                            if ((movingBoard.board[index] & 1) > 0)
-                            {
-                                isOutRange = true;
-                                break;
-                            }
-                        }
-                        if (isOutRange) return; // 左移移会超出范围
-                        for (int i = 0; i < length; i++)
-                        {
-                            var index = movingBoard.lineBlockInfo.blockPosY + i;
-                            movingBoard.board[index] = movingBoard.board[index] >> 1;
-                        }
+                        if (!this.canLeft()) return;
+                        this.movingBoard.Left();
                         view.DrawMovingBoard(this.movingBoard.datas);
                     }
 
                     break;
                 case BlockOperation.Right:
                     {
-                        var length = Math.Max(movingBoard.lineBlockInfo.lineBlockData.Length, movingBoard.board.Length - movingBoard.lineBlockInfo.blockPosY);
-                        // 所有移动中的棋子右移一格
-                        var isOutRange = false;
-                        for (int i = 0; i < length; i++)
-                        {
-                            var index = movingBoard.lineBlockInfo.blockPosY + i;
-                            if ((movingBoard.board[index] & (int)Math.Pow(2, BOARD_WIDTH - 1)) > 0)
-                            {
-                                isOutRange = true;
-                                break;
-                            }
-                        }
-                        if (isOutRange) return; // 右移会超出范围
-                        for (int i = 0; i < length; i++)
-                        {
-                            var index = movingBoard.lineBlockInfo.blockPosY + i;
-                            movingBoard.board[index] = movingBoard.board[index] << 1;
-                        }
+                        if (!this.canRight()) return;
+                        this.movingBoard.Right();
                         view.DrawMovingBoard(this.movingBoard.datas);
                     }
                     break;
@@ -162,7 +104,7 @@ namespace Tetris.Runtime
 
                     break;
                 case BlockOperation.Rotate:
-                    var newLineBlockData = Block.Create(movingBoard.lineBlockInfo.type, movingBoard.lineBlockInfo.rotateCount + 1);
+                    //var newLineBlockData = Block.Create(movingBoard.lineBlockInfo.type, movingBoard.lineBlockInfo.rotateCount + 1);
 
 
                     //movingBoardInfo.lineBlockInfo.rotateCount++;
@@ -214,15 +156,76 @@ namespace Tetris.Runtime
         /**
          * 检测下一次下落能否抵达
          */
-        private bool checkNextStepReachable()
+        private bool canDown()
         {
             if (this.movingBoard.datas[0] > 0) return false;
-            for (int i = 0; i < BOARD_HEIGHT; i++)
+            for (int i = 0; i < this.movingBoard.block.size; i++)
             {
-                if (this.fixedBoard.datas[i] == 0 || this.movingBoard.datas[i + 1] == 0) continue;
-                if ((this.fixedBoard.datas[i] & this.movingBoard.datas[i + 1]) > 0) return false; // 有重叠， 则不可抵达
+                var lineIdx = this.movingBoard.y + i;
+                if (lineIdx < 0) continue;
+                var currentMovingValue = this.movingBoard.datas[lineIdx];
+                if (currentMovingValue == 0) continue;
+                if (currentMovingValue > 0 && lineIdx - 1 < 0) return false; // 移动行已经处于底端，不能再往下移动
+                if ((currentMovingValue & this.fixedBoard.datas[lineIdx - 1]) > 0) return false; // 移动后有重叠， 则不可抵达
+                //if (this.fixedBoard.datas[i] == 0 || this.movingBoard.datas[i + 1] == 0) continue;
+                //if ((this.fixedBoard.datas[i] & this.movingBoard.datas[i + 1]) > 0) return false; 
             }
             return true;
+        }
+
+        private bool canLeft()
+        {
+            //if (this.movingBoard.x - 1 + this.movingBoard.block.rect.x - 1 < 0) return false;
+            for (int i = 0; i < this.movingBoard.block.size; i++)
+            {
+                var lineIdx = this.movingBoard.y + i;
+                if (lineIdx < 0) continue;
+                var currentMovingValue = this.movingBoard.datas[lineIdx];
+                if (currentMovingValue == 0) continue;
+                // 版块先左移一格，如果超出了界面，则再次右移回来的数据会跟原始数据不一致
+                var valueAfterLeftMoving = currentMovingValue >> 1;
+                if (currentMovingValue != valueAfterLeftMoving << 1) return false;
+                // 该行在合并后是否有重叠数据，如果有，则无法移动
+                if ((valueAfterLeftMoving & this.fixedBoard.datas[lineIdx]) > 0) return false;
+            }
+            return true;
+        }
+
+        private bool canRight()
+        {
+            for (int i = 0; i < this.movingBoard.block.size; i++)
+            {
+                var lineIdx = this.movingBoard.y + i;
+                if (lineIdx < 0) continue;
+                var currentMovingValue = this.movingBoard.datas[lineIdx];
+                if (currentMovingValue == 0) continue;
+                // 版块先右移一格，如果超出了界面，则再次左移回来的数据会跟原始数据不一致
+                var valueAfterLeftMoving = currentMovingValue << 1;
+                if (currentMovingValue != valueAfterLeftMoving >> 1) return false;
+                // 移动后的数据在跟固定棋盘数据合并后如果有重叠数据，则无法移动
+                if ((valueAfterLeftMoving & this.fixedBoard.datas[lineIdx]) > 0) return false;
+            }
+            return true;
+        }
+
+        private bool canRotate()
+        {
+            // 检查移动或旋转后的板块的有效数据是否会超出棋盘
+            var rotatedBlockData = Block.Rotate(this.movingBoard.block.data);
+            var rect = Block.GetRect(rotatedBlockData);
+
+            // 检查左边
+            if (this.movingBoard.x + rect.x - 1 < 0) return false;
+            // 检查右边
+            if (this.movingBoard.x + rect.x + rect.width + 1 >= this.boardWidth) return false;
+            // 检查底部
+            if (this.movingBoard.y + this.movingBoard.block.size - rect.x - rect.width - 1 < 0) return false;
+
+            // 检查移动后的数据能否和固定棋盘合并
+            var binaryArray = Block.ToBinaryArray(rotatedBlockData);
+
+
+            return false;
         }
 
 
@@ -235,7 +238,7 @@ namespace Tetris.Runtime
             //var rotateCount = ;
             //var blockData = Block.Create(blockType, rotateCount);
             //var lineBlockData = new int[blockData.Length];
-            ////var startX = Mathf.CeilToInt((BOARD_WIDTH - blockData.Length) / 2f);
+            ////var startX = Mathf.CeilToInt((boardWidth - blockData.Length) / 2f);
             ////for (int i = 0; i < blockData.Length; i++)
             ////{
             ////    lineBlockData[i] = blockData[i] << startX;
