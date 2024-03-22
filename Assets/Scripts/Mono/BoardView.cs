@@ -86,6 +86,8 @@ public class BoardView : MonoBehaviour, IBoardView
     }
 
 
+
+
     private int PosToIndex(int x, int y)
     {
         return x + y * 10;
@@ -181,10 +183,15 @@ public class BoardView : MonoBehaviour, IBoardView
         transform.gameObject.SetActive(false);
     }
 
-    public void GameOver()
+    public void OnGameOver()
     {
         gameStatus = GameStatus.GameOver;
         Debug.Log("BoardView GameOver");
+    }
+
+    public void OnRoundStart()
+    {
+        nextDownWaitingTime = 0;
     }
 }
 

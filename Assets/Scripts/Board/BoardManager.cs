@@ -42,6 +42,8 @@ namespace Tetris.Runtime
 
         private void RunNextBlock()
         {
+            view.OnRoundStart();
+
             var block = ExtractNextBlock();
 
             movingBoard.Reset(block);
@@ -62,9 +64,13 @@ namespace Tetris.Runtime
                         // 跟固定棋盘进行合并
                         this.fixedBoard.Combine(this.movingBoard);
                         view.DrawFixedBoard(this.fixedBoard.datas);
+                        
+                        this.movingBoard.ToTop();
+                        view.DrawMovingBoard(this.movingBoard.datas);
+
                         if (this.fixedBoard.IsGameOver())
                         {
-                            view.GameOver();
+                            view.OnGameOver();
                             Debug.Log("游戏结束");
                         } else
                         {
@@ -110,6 +116,7 @@ namespace Tetris.Runtime
                         }
                         y--;
                     }
+                    if (y >= this.movingBoard.y) return;
                     Debug.Log("====>ToBottom 定位行索引：" + y);
                     this.movingBoard.ToBottom(y);
                     view.DrawMovingBoard(this.movingBoard.datas);
@@ -178,25 +185,19 @@ namespace Tetris.Runtime
             return true;
         }
 
+        // TODO 这里逻辑有问题
         private bool canRotate()
         {
             // 检查移动或旋转后的板块的有效数据是否会超出棋盘
             var rotatedBlockData = Block.Rotate(this.movingBoard.block.data);
-            var rect = Block.GetRect(rotatedBlockData);
-
-            // 检查左边
-            if (this.movingBoard.x + rect.x - 1 < 0) return false;
-            // 检查右边
-            if (this.movingBoard.x + rect.x + rect.width + 1 >= this.boardWidth) return false;
-            // 检查底部
-            if (this.movingBoard.y + this.movingBoard.block.size - rect.x - rect.width - 1 < 0) return false;
 
             // 检查移动后的数据能否和固定棋盘合并
             var binaryArray = Block.ToBinaryArray(rotatedBlockData);
             var partBoardData = Utils.GenPartBoardData(binaryArray, this.movingBoard.x, boardWidth);
             for (int i = 0; i < partBoardData.Length; i++)
             {
-                if ((this.fixedBoard.datas[this.movingBoard.y - i] & partBoardData[i]) > 0) return false;
+                if (partBoardData[i] >> this.movingBoard.x != binaryArray[i]) return false; // 检查在合并到局部棋盘时，数据是否有损失
+                if ((this.fixedBoard.datas[this.movingBoard.y - i] & partBoardData[i]) > 0) return false; // 检查旋转后能否跟固定棋盘合并
             }
 
             return true;

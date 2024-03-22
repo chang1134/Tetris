@@ -9,7 +9,10 @@ namespace Tetris.Runtime
         public void DrawFixedBoard(int[] board);
         public void DrawMovingBoard(int[] board);
 
-        public void GameOver();
+        /* 回合开始 */
+        public void OnRoundStart();
+        /* 游戏结束 */ 
+        public void OnGameOver();
 
     }
 

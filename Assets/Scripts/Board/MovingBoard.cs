@@ -34,6 +34,11 @@ namespace Tetris.Runtime
 
         public int[] datas { get; private set; }
 
+        public void ToTop() {
+            this.y = this.datas.Length - 1;
+            this.UpdateBoard();
+        }
+
         public void Reset(Block block)
         {
             var offsetX = Mathf.CeilToInt((this.boardWidth - block.size) / 2f);
