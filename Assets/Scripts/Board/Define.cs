@@ -9,6 +9,8 @@ namespace Tetris.Runtime
         public void DrawFixedBoard(int[] board);
         public void DrawMovingBoard(int[] board);
 
+        public void GameOver();
+
     }
 
     public interface IBoard

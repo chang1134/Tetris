@@ -24,6 +24,31 @@ public class BoardView : MonoBehaviour, IBoardView
 
     private BoardManager boardMgr = new BoardManager();
 
+
+    private float nextDownWaitingTime = 0;
+
+    private static float AUTO_DOWN_INTERVAL = 0.2f;
+
+    private GameStatus _gameStatus = GameStatus.Prepare;
+
+    private GameStatus gameStatus
+    {
+        get { return _gameStatus; }
+        set
+        {
+            if (_gameStatus == value) return;
+            _gameStatus = value;
+            if (value == GameStatus.Pause)
+            {
+                // 显示暂停界面
+            }
+            else
+            {
+                // 显示游戏结束
+            }
+        }
+    }
+
     void Start()
     {
         //for (int i = 0; i < boardFixedData.Length; i++)
@@ -34,12 +59,30 @@ public class BoardView : MonoBehaviour, IBoardView
         //DrawBlock(Block.I);
         //gameStatus = GameStatus.Running;
         boardMgr.Init(this, BOARD_WIDTH, BOARD_HEIGHT);
-        boardMgr.StartGame();
+
+        nextDownWaitingTime = 0;
+        gameStatus = GameStatus.Running;
+
+        boardMgr.PrepareBoard();
     }
 
     void Update()
     {
-        boardMgr.Tick(Input.GetKey(KeyCode.S) ? 5f : 1f);
+        if (gameStatus == GameStatus.Running)
+        {
+            if (Input.GetKeyDown(KeyCode.W)) boardMgr.UpdateMoveingBoard(BlockOperation.Rotate);
+            if (Input.GetKeyDown(KeyCode.A)) boardMgr.UpdateMoveingBoard(BlockOperation.Left);
+            if (Input.GetKeyDown(KeyCode.D)) boardMgr.UpdateMoveingBoard(BlockOperation.Right);
+            if (Input.GetKeyDown(KeyCode.Space)) boardMgr.UpdateMoveingBoard(BlockOperation.ToBottom);
+
+            // 加速下落
+            nextDownWaitingTime += Time.deltaTime;
+            if (nextDownWaitingTime > AUTO_DOWN_INTERVAL / (Input.GetKey(KeyCode.S) ? 5f : 1f))
+            {
+                nextDownWaitingTime = 0;
+                boardMgr.UpdateMoveingBoard(BlockOperation.Down);
+            }
+        }
     }
 
 
@@ -53,7 +96,6 @@ public class BoardView : MonoBehaviour, IBoardView
         return new Vector2Int(index % 10, index / 10);
     }
 
-
     private void SetPosition(Transform transform, int index)
     {
         var pos = IndexToPos(index);
@@ -63,7 +105,6 @@ public class BoardView : MonoBehaviour, IBoardView
     {
         (transform as RectTransform).anchoredPosition = new Vector2(x * 54, y * 54);
     }
-
 
     public void DrawFixedBoard(int[] board)
     {
@@ -140,5 +181,10 @@ public class BoardView : MonoBehaviour, IBoardView
         transform.gameObject.SetActive(false);
     }
 
+    public void GameOver()
+    {
+        gameStatus = GameStatus.GameOver;
+        Debug.Log("BoardView GameOver");
+    }
 }
 

@@ -8,7 +8,7 @@ namespace Tetris.Runtime
     {
         private int boardWidth;
 
-        public FixedBoard(int boardHeight, int boardWidth)
+        public FixedBoard(int boardWidth, int boardHeight)
         {
             this.datas = new int[boardHeight + Block.MAX_SIZE];
             this.boardWidth = boardWidth;    

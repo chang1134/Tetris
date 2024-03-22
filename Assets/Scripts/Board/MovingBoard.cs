@@ -26,7 +26,7 @@ namespace Tetris.Runtime
 
         private int boardWidth;
 
-        public MovingBoard(int boardHeight, int boardWidth)
+        public MovingBoard(int boardWidth, int boardHeight)
         {
             datas = new int[boardHeight + Block.MAX_SIZE];
             this.boardWidth = boardWidth;
@@ -36,9 +36,18 @@ namespace Tetris.Runtime
 
         public void Reset(Block block)
         {
-            var offsetY = this.datas.Length - Block.MAX_SIZE + block.size - block.rect.y - block.rect.height;
             var offsetX = Mathf.CeilToInt((this.boardWidth - block.size) / 2f);
-            this.Reset(block, offsetX, this.datas.Length - offsetY - 1);
+
+            var partBoardData = Utils.GenPartBoardData(block.binaryArray, offsetX, this.boardWidth);
+
+            var emptyLineCount = Block.MAX_SIZE - block.size;
+            for (int i = partBoardData.Length - 1; i >= 0; i--)
+            {
+                if (partBoardData[i] > 0) break;
+                emptyLineCount++;
+            }
+            var offsetY = this.datas.Length - 1 - emptyLineCount;
+            this.Reset(block, offsetX, offsetY);
         }
 
         public void Reset(Block block, int x, int y)
@@ -63,19 +72,25 @@ namespace Tetris.Runtime
         private void UpdateBoard()
         {
             CleanBoard();
-            for (int i = 0; i < block.size; i++)
+            var partBoardData = Utils.GenPartBoardData(block.binaryArray, this.x, this.boardWidth);
+            for (int i = 0; i < partBoardData.Length; i++)
             {
-                if (this.y - i >= 0)
+                if (y - i >= 0)
                 {
-                    if (this.x >= 0)
-                    {
-                        this.datas[this.y - i] = this.block.binaryArray[i] << this.x;
-                    } else
-                    {
-                        this.datas[this.y - i] = this.block.binaryArray[i] >> Math.Abs(this.x);
-                    }
+                    this.datas[y - i] = partBoardData[i];
                 }
             }
+        }
+
+
+        public void ToBottom(int y)
+        {
+            if (this.y < y)
+            {
+                throw new Exception("ToBottom currentY < newY ???");
+            }
+            this.y = y;
+            this.UpdateBoard();
         }
 
         /**
