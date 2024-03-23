@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using Tetris.Runtime;
 using UnityEngine;
 
@@ -24,7 +25,7 @@ public class BoardView : MonoBehaviour, IBoardView
 
     private BoardManager boardMgr = new BoardManager();
 
-
+    // 下次下移所等待的时间
     private float nextDownWaitingTime = 0;
 
     private static float AUTO_DOWN_INTERVAL = 0.2f;
@@ -49,6 +50,11 @@ public class BoardView : MonoBehaviour, IBoardView
         }
     }
 
+    public float DownInterval
+    {
+        get { return AUTO_DOWN_INTERVAL; }
+    }
+
     void Start()
     {
         //for (int i = 0; i < boardFixedData.Length; i++)
@@ -60,7 +66,6 @@ public class BoardView : MonoBehaviour, IBoardView
         //gameStatus = GameStatus.Running;
         boardMgr.Init(this, BOARD_WIDTH, BOARD_HEIGHT);
 
-        nextDownWaitingTime = 0;
         gameStatus = GameStatus.Running;
 
         boardMgr.PrepareBoard();
@@ -85,9 +90,6 @@ public class BoardView : MonoBehaviour, IBoardView
         }
     }
 
-
-
-
     private int PosToIndex(int x, int y)
     {
         return x + y * 10;
@@ -110,7 +112,12 @@ public class BoardView : MonoBehaviour, IBoardView
 
     public void DrawFixedBoard(int[] board)
     {
-        DrawBoard(board, this.go_fixed.transform, this.fixedItemMap);
+        var newItemIdxs = DrawBoard(board, this.go_fixed.transform, this.fixedItemMap);
+        var newItems = newItemIdxs.Select((x) => this.fixedItemMap[x]).ToList();
+        for (int i = 0; i < newItems.Count; i++)
+        {
+            newItems[i].GetComponent<Animation>().Play("Combine");
+        }
     }
 
     public void DrawMovingBoard(int[] board)
@@ -119,7 +126,7 @@ public class BoardView : MonoBehaviour, IBoardView
     }
 
     // boardData是个二进制数组
-    private void DrawBoard(int[] data, Transform parent, Dictionary<int, Transform> usingItemMap)
+    private List<int> DrawBoard(int[] data, Transform parent, Dictionary<int, Transform> usingItemMap)
     {
         var needCreateList = new List<int>();
 
@@ -160,6 +167,7 @@ public class BoardView : MonoBehaviour, IBoardView
             SetPosition(item, index);
             usingItemMap.Add(index, item);
         }
+        return needCreateList;
     }
 
     private RectTransform getOrCreateItem(Transform parent)
@@ -191,7 +199,7 @@ public class BoardView : MonoBehaviour, IBoardView
 
     public void OnRoundStart()
     {
-        nextDownWaitingTime = 0;
+        nextDownWaitingTime = DownInterval;
     }
 }
 

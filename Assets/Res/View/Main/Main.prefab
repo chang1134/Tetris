@@ -582,6 +582,7 @@ GameObject:
   - component: {fileID: 1699459493004185098}
   - component: {fileID: 8912004591843981695}
   - component: {fileID: 7468697858013047169}
+  - component: {fileID: 4483103239570760658}
   m_Layer: 5
   m_Name: go_gridItem
   m_TagString: Untagged
@@ -646,6 +647,22 @@ MonoBehaviour:
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
   m_PixelsPerUnitMultiplier: 1
+--- !u!111 &4483103239570760658
+Animation:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1377783854061130636}
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Animation: {fileID: 7400000, guid: aaeea5a7747045448bb9a035c3f3b811, type: 2}
+  m_Animations:
+  - {fileID: 7400000, guid: aaeea5a7747045448bb9a035c3f3b811, type: 2}
+  m_WrapMode: 0
+  m_PlayAutomatically: 0
+  m_AnimatePhysics: 0
+  m_CullingType: 0
 --- !u!1 &1391083816051386969
 GameObject:
   m_ObjectHideFlags: 0

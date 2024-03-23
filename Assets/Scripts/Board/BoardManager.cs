@@ -51,6 +51,26 @@ namespace Tetris.Runtime
             PrepareNextBlock();
         }
 
+        private void RoundOver()
+        {
+            // 跟固定棋盘进行合并
+            this.fixedBoard.Combine(this.movingBoard);
+            view.DrawFixedBoard(this.fixedBoard.datas);
+
+            this.movingBoard.ToTop();
+            view.DrawMovingBoard(this.movingBoard.datas);
+
+            if (this.fixedBoard.IsGameOver())
+            {
+                view.OnGameOver();
+                Debug.Log("游戏结束");
+            }
+            else
+            {
+                RunNextBlock();
+            }
+        }
+
         /**
          * 根据操作调整移动的棋盘
          */
@@ -61,21 +81,7 @@ namespace Tetris.Runtime
                 case BlockOperation.Down:
                     if (!canDown())
                     {
-                        // 跟固定棋盘进行合并
-                        this.fixedBoard.Combine(this.movingBoard);
-                        view.DrawFixedBoard(this.fixedBoard.datas);
-                        
-                        this.movingBoard.ToTop();
-                        view.DrawMovingBoard(this.movingBoard.datas);
-
-                        if (this.fixedBoard.IsGameOver())
-                        {
-                            view.OnGameOver();
-                            Debug.Log("游戏结束");
-                        } else
-                        {
-                            RunNextBlock();
-                        }
+                        this.RoundOver();
                         return;
                     }
                     this.movingBoard.Down();
@@ -96,14 +102,15 @@ namespace Tetris.Runtime
                     }
                     break;
                 case BlockOperation.ToBottom:
+                    // TODO 刚准备好的板块 可能还没出现到棋盘上，就被置底了， 应当至少出现了一格，才能下坠
                     var partBoardData = Utils.GenPartBoardData(this.movingBoard.block.binaryArray, this.movingBoard.x, boardWidth);
                     var y = this.movingBoard.y;
                     while(y >= 0)
                     {
                         var isPass = true;
-                        for (int i = 0; i < partBoardData.Length; i++)
+                        for (int i = partBoardData.Length - 1; i >= 0; i--)
                         {
-                            if ((partBoardData[i] > 0 && y - i <= 0) || (this.fixedBoard.datas[y - i] & partBoardData[i]) > 0)
+                            if ((partBoardData[i] > 0 && y - i < 0) || (y - i >= 0 && (this.fixedBoard.datas[y - i] & partBoardData[i]) > 0))
                             {
                                 isPass = false;
                                 break;
@@ -117,9 +124,8 @@ namespace Tetris.Runtime
                         y--;
                     }
                     if (y >= this.movingBoard.y) return;
-                    Debug.Log("====>ToBottom 定位行索引：" + y);
                     this.movingBoard.ToBottom(y);
-                    view.DrawMovingBoard(this.movingBoard.datas);
+                    this.RoundOver();
                     break;
                 case BlockOperation.Rotate:
                     if (!canRotate()) return;
@@ -204,26 +210,12 @@ namespace Tetris.Runtime
         }
 
 
-        private void PrepareNextBlock(BlockType blockType, bool isRandom)
+        private void PrepareNextBlock(BlockType blockType)
         {
             var block = new Block(blockType, UnityEngine.Random.Range(0, 4));
 
-            //LineBlockInfo lineBlockInfo = new LineBlockInfo();
-            //lineBlockInfo.type = blockType;
-            //var rotateCount = ;
-            //var blockData = Block.Create(blockType, rotateCount);
-            //var lineBlockData = new int[blockData.Length];
-            ////var startX = Mathf.CeilToInt((boardWidth - blockData.Length) / 2f);
-            ////for (int i = 0; i < blockData.Length; i++)
-            ////{
-            ////    lineBlockData[i] = blockData[i] << startX;
-            ////}
-            ////lineBlockInfo.blockPosX = startX;
-            //lineBlockInfo.rotateCount = rotateCount;
-            //lineBlockInfo.lineBlockData = lineBlockData;
             nextBlock = block;
-            //nextLineBlock = lineBlockInfo;
-            // 显示到界面上
+            // TODO 显示到界面上
         }
 
         private void PrepareNextBlock()
@@ -237,7 +229,7 @@ namespace Tetris.Runtime
 
             int randomIdx = UnityEngine.Random.Range(0, blockValues.Length);
 
-            PrepareNextBlock((BlockType)blockValues.GetValue(randomIdx), true);
+            PrepareNextBlock((BlockType)blockValues.GetValue(randomIdx));
         }
 
         private Block ExtractNextBlock()
