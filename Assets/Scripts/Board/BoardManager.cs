@@ -26,8 +26,8 @@ namespace Tetris.Runtime
             this.view = view;
             this.boardWidth = boardWidth;
             this.boardHeight = boardHeight;
-            this.movingBoard = new MovingBoard(boardWidth, boardHeight);
-            this.fixedBoard = new FixedBoard(boardWidth, boardHeight);
+            this.movingBoard = new MovingBoard(boardWidth, this.boardHeight);
+            this.fixedBoard = new FixedBoard(boardWidth, this.boardHeight);
         }
 
         public void PrepareBoard()
@@ -35,12 +35,9 @@ namespace Tetris.Runtime
             CleanNextBlock();
             // 游戏开始时，先准备下一个板块
             PrepareNextBlock();
-
-            // 开始下一板块
-            RunNextBlock();
         }
 
-        private void RunNextBlock()
+        public void NextRoundStart()
         {
             view.OnRoundStart();
 
@@ -55,20 +52,31 @@ namespace Tetris.Runtime
         {
             // 跟固定棋盘进行合并
             this.fixedBoard.Combine(this.movingBoard);
-            view.DrawFixedBoard(this.fixedBoard.datas);
 
-            this.movingBoard.ToTop();
+            var beforeEliminateBoardDatas = new int[this.fixedBoard.datas.Length];
+            Array.Copy(this.fixedBoard.datas, beforeEliminateBoardDatas, beforeEliminateBoardDatas.Length);
+
+            // 检测消除
+            this.fixedBoard.Eliminate();
+
+            this.movingBoard.CleanBoard();
             view.DrawMovingBoard(this.movingBoard.datas);
 
-            if (this.fixedBoard.IsGameOver())
-            {
-                view.OnGameOver();
-                Debug.Log("游戏结束");
-            }
-            else
-            {
-                RunNextBlock();
-            }
+            view.OnRoundOver(beforeEliminateBoardDatas, this.fixedBoard.datas, this.fixedBoard.IsGameOver());
+
+            //view.DrawFixedBoard(this.fixedBoard.datas);
+
+            //view.DrawMovingBoard(this.movingBoard.datas);
+
+            //if (this.fixedBoard.IsGameOver())
+            //{
+            //    view.OnGameOver();
+            //    Debug.Log("游戏结束");
+            //}
+            //else
+            //{
+            //    RunNextBlock();
+            //}
         }
 
         /**
@@ -191,11 +199,11 @@ namespace Tetris.Runtime
             return true;
         }
 
-        // TODO 这里逻辑有问题
+        //  这里逻辑有问题
         private bool canRotate()
         {
             // 检查移动或旋转后的板块的有效数据是否会超出棋盘
-            var rotatedBlockData = Block.Rotate(this.movingBoard.block.data);
+            var rotatedBlockData = Block.Rotate(this.movingBoard.block);
 
             // 检查移动后的数据能否和固定棋盘合并
             var binaryArray = Block.ToBinaryArray(rotatedBlockData);

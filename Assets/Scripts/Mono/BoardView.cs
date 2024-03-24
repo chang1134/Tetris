@@ -28,7 +28,7 @@ public class BoardView : MonoBehaviour, IBoardView
     // 下次下移所等待的时间
     private float nextDownWaitingTime = 0;
 
-    private static float AUTO_DOWN_INTERVAL = 0.2f;
+    private static float AUTO_DOWN_INTERVAL = 1f;
 
     private GameStatus _gameStatus = GameStatus.Prepare;
 
@@ -66,23 +66,24 @@ public class BoardView : MonoBehaviour, IBoardView
         //gameStatus = GameStatus.Running;
         boardMgr.Init(this, BOARD_WIDTH, BOARD_HEIGHT);
 
-        gameStatus = GameStatus.Running;
+        gameStatus = GameStatus.RoundRuning;
 
         boardMgr.PrepareBoard();
+        boardMgr.NextRoundStart();
     }
 
     void Update()
     {
-        if (gameStatus == GameStatus.Running)
+        if (gameStatus == GameStatus.RoundRuning)
         {
-            if (Input.GetKeyDown(KeyCode.W)) boardMgr.UpdateMoveingBoard(BlockOperation.Rotate);
-            if (Input.GetKeyDown(KeyCode.A)) boardMgr.UpdateMoveingBoard(BlockOperation.Left);
-            if (Input.GetKeyDown(KeyCode.D)) boardMgr.UpdateMoveingBoard(BlockOperation.Right);
+            if (Input.GetKeyDown(KeyCode.W) || Input.GetKeyDown(KeyCode.UpArrow)) boardMgr.UpdateMoveingBoard(BlockOperation.Rotate);
+            if (Input.GetKeyDown(KeyCode.A) || Input.GetKeyDown(KeyCode.LeftArrow)) boardMgr.UpdateMoveingBoard(BlockOperation.Left);
+            if (Input.GetKeyDown(KeyCode.D) || Input.GetKeyDown(KeyCode.RightArrow)) boardMgr.UpdateMoveingBoard(BlockOperation.Right);
             if (Input.GetKeyDown(KeyCode.Space)) boardMgr.UpdateMoveingBoard(BlockOperation.ToBottom);
 
             // 加速下落
             nextDownWaitingTime += Time.deltaTime;
-            if (nextDownWaitingTime > AUTO_DOWN_INTERVAL / (Input.GetKey(KeyCode.S) ? 5f : 1f))
+            if (nextDownWaitingTime > AUTO_DOWN_INTERVAL / ((Input.GetKey(KeyCode.S) || Input.GetKey(KeyCode.DownArrow)) ? 5f : 1f))
             {
                 nextDownWaitingTime = 0;
                 boardMgr.UpdateMoveingBoard(BlockOperation.Down);
@@ -108,16 +109,6 @@ public class BoardView : MonoBehaviour, IBoardView
     private void SetPosition(Transform transform, int x, int y)
     {
         (transform as RectTransform).anchoredPosition = new Vector2(x * 54, y * 54);
-    }
-
-    public void DrawFixedBoard(int[] board)
-    {
-        var newItemIdxs = DrawBoard(board, this.go_fixed.transform, this.fixedItemMap);
-        var newItems = newItemIdxs.Select((x) => this.fixedItemMap[x]).ToList();
-        for (int i = 0; i < newItems.Count; i++)
-        {
-            newItems[i].GetComponent<Animation>().Play("Combine");
-        }
     }
 
     public void DrawMovingBoard(int[] board)
@@ -191,14 +182,64 @@ public class BoardView : MonoBehaviour, IBoardView
         transform.gameObject.SetActive(false);
     }
 
-    public void OnGameOver()
+    public void OnRoundOver(int[] beforeEliminateBoardDatas, int[] afterEliminateBoardDatas, bool gameOver)
     {
-        gameStatus = GameStatus.GameOver;
-        Debug.Log("BoardView GameOver");
+        StartCoroutine(HandleRoundOver(beforeEliminateBoardDatas, afterEliminateBoardDatas, gameOver));
+    }
+
+    IEnumerator HandleRoundOver(int[] beforeEliminateBoardDatas, int[] afterEliminateBoardDatas, bool gameOver)
+    {
+        this.gameStatus = GameStatus.RoundOver;
+
+        // 先绘制下合并后未消除的格子
+        var newItemIdxs = DrawBoard(beforeEliminateBoardDatas, this.go_fixed.transform, this.fixedItemMap);
+
+        var eliminateCount = 0;
+
+        var totalValidLine = (int)Math.Pow(2, BOARD_WIDTH) - 1;
+        for (int y = 0; y < BOARD_HEIGHT; y++)
+        {
+            if (beforeEliminateBoardDatas[y] == totalValidLine)
+            {
+                eliminateCount++;
+                for (int x = 0; x < BOARD_WIDTH; x++)
+                {
+                    this.fixedItemMap[PosToIndex(x, y)].GetComponent<Animation>().Play("Combine");
+                }
+            }
+        }
+        // 播放消除行动画
+        if (eliminateCount == 0)
+        {
+            // 播放板块插入动画
+            List<Transform> animItems = newItemIdxs.Select((x) => this.fixedItemMap[x]).ToList();
+            for (int i = 0; i < animItems.Count; i++)
+            {
+                animItems[i].GetComponent<Animation>().Play("Combine");
+            }
+        }
+        var waitingTime = this.go_gridItem.GetComponent<Animation>().clip.length;
+        yield return new WaitForSeconds(waitingTime);
+        if (eliminateCount > 0)
+        {
+            // 消除动画播完后，开始绘制消除后的数据
+            DrawBoard(afterEliminateBoardDatas, this.go_fixed.transform, this.fixedItemMap);
+        }
+
+        if (gameOver)
+        {
+            gameStatus = GameStatus.GameOver;
+            Debug.Log("BoardView GameOver");
+        } else
+        {
+            boardMgr.NextRoundStart();
+        }
     }
 
     public void OnRoundStart()
     {
+        this.gameStatus = GameStatus.RoundRuning;
+
         nextDownWaitingTime = DownInterval;
     }
 }

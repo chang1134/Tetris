@@ -34,11 +34,6 @@ namespace Tetris.Runtime
 
         public int[] datas { get; private set; }
 
-        public void ToTop() {
-            this.y = this.datas.Length - 1;
-            this.UpdateBoard();
-        }
-
         public void Reset(Block block)
         {
             var offsetX = Mathf.CeilToInt((this.boardWidth - block.size) / 2f);
@@ -65,7 +60,7 @@ namespace Tetris.Runtime
             this.UpdateBoard();
         }
 
-        private void CleanBoard()
+        public void CleanBoard()
         {
             if (this.datas == null) return;
             for (int i = 0; i < this.datas.Length; i++)

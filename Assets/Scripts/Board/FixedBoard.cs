@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -36,6 +37,23 @@ namespace Tetris.Runtime
                 if (this.datas[i] > 0) return true;
             }
             return false;
+        }
+
+        /* Ïû³ı */
+        public void Eliminate()
+        {
+            var datasAfterEliminate = new int[this.datas.Length];
+            var newIdx = 0;
+            var totalValidLine = (int)Math.Pow(2, this.boardWidth) - 1;
+            for (int i = 0; i < this.datas.Length; i++)
+            {
+                if (this.datas[i] > 0 && this.datas[i] != totalValidLine)
+                {
+                    datasAfterEliminate[newIdx] = this.datas[i];
+                    newIdx++;
+                }
+            }
+            this.datas = datasAfterEliminate;
         }
     }
 }
