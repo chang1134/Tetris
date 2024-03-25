@@ -42,7 +42,7 @@ namespace Tetris.Runtime
         Down,
         Left,
         Right,
-        ToBottom,
+        Drop,
         Rotate,
     }
 }

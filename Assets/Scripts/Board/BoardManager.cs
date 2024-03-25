@@ -109,9 +109,9 @@ namespace Tetris.Runtime
                         view.DrawMovingBoard(this.movingBoard.datas);
                     }
                     break;
-                case BlockOperation.ToBottom:
+                case BlockOperation.Drop:
                     // TODO 刚准备好的板块 可能还没出现到棋盘上，就被置底了， 应当至少出现了一格，才能下坠
-                    var partBoardData = Utils.GenPartBoardData(this.movingBoard.block.binaryArray, this.movingBoard.x, boardWidth);
+                    var partBoardData = Utils.GenPartBoardData(this.movingBoard.block.binaryArray, this.movingBoard.x, boardWidth, out bool isDataLose);
                     var y = this.movingBoard.y;
                     while(y >= 0)
                     {
@@ -207,10 +207,10 @@ namespace Tetris.Runtime
 
             // 检查移动后的数据能否和固定棋盘合并
             var binaryArray = Block.ToBinaryArray(rotatedBlockData);
-            var partBoardData = Utils.GenPartBoardData(binaryArray, this.movingBoard.x, boardWidth);
+            var partBoardData = Utils.GenPartBoardData(binaryArray, this.movingBoard.x, boardWidth, out bool isDataLose);
+            if (isDataLose) return false;
             for (int i = 0; i < partBoardData.Length; i++)
             {
-                if (partBoardData[i] >> this.movingBoard.x != binaryArray[i]) return false; // 检查在合并到局部棋盘时，数据是否有损失
                 if ((this.fixedBoard.datas[this.movingBoard.y - i] & partBoardData[i]) > 0) return false; // 检查旋转后能否跟固定棋盘合并
             }
 

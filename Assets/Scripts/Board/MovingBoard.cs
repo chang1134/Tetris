@@ -38,7 +38,7 @@ namespace Tetris.Runtime
         {
             var offsetX = Mathf.CeilToInt((this.boardWidth - block.size) / 2f);
 
-            var partBoardData = Utils.GenPartBoardData(block.binaryArray, offsetX, this.boardWidth);
+            var partBoardData = Utils.GenPartBoardData(block.binaryArray, offsetX, this.boardWidth, out bool isDataLose);
 
             var emptyLineCount = Block.MAX_SIZE - block.size;
             for (int i = partBoardData.Length - 1; i >= 0; i--)
@@ -72,7 +72,7 @@ namespace Tetris.Runtime
         private void UpdateBoard()
         {
             CleanBoard();
-            var partBoardData = Utils.GenPartBoardData(block.binaryArray, this.x, this.boardWidth);
+            var partBoardData = Utils.GenPartBoardData(block.binaryArray, this.x, this.boardWidth, out bool isDataLose);
             for (int i = 0; i < partBoardData.Length; i++)
             {
                 if (y - i >= 0)

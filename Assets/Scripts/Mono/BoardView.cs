@@ -3,8 +3,9 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using Tetris.Runtime;
+using TMPro;
 using UnityEngine;
-
+using UnityEngine.UI;
 
 public class BoardView : MonoBehaviour, IBoardView
 {
@@ -15,6 +16,17 @@ public class BoardView : MonoBehaviour, IBoardView
     public GameObject go_fixed;
 
     public GameObject go_gridItem;
+
+    public TextMeshProUGUI txtScore;
+    public TextMeshProUGUI txtEliminate;
+    public TextMeshProUGUI txtSpeed;
+    public TextMeshProUGUI txtTime;
+
+    public Button btnLeft;
+    public Button btnRight;
+    public Button btnDrop;
+    public Button btnRotate;
+    public ButtonPress btnSpeedUp;
 
     // 棋盘上正在使用的棋子
     private Dictionary<int, Transform> fixedItemMap = new Dictionary<int, Transform>();
@@ -57,13 +69,15 @@ public class BoardView : MonoBehaviour, IBoardView
 
     void Start()
     {
-        //for (int i = 0; i < boardFixedData.Length; i++)
-        //{
-        //    boardFixedData[i] = (int)Mathf.Pow(2, 10) - 1;
-        //}
-        //DrawFixedBoard();
-        //DrawBlock(Block.I);
-        //gameStatus = GameStatus.Running;
+        btnRotate.onClick.AddListener(() => { if (gameStatus == GameStatus.RoundRuning) boardMgr.UpdateMoveingBoard(BlockOperation.Rotate); });
+        btnRight.onClick.AddListener(() => { if (gameStatus == GameStatus.RoundRuning) boardMgr.UpdateMoveingBoard(BlockOperation.Right); });
+        btnLeft.onClick.AddListener(() => { if (gameStatus == GameStatus.RoundRuning) boardMgr.UpdateMoveingBoard(BlockOperation.Left); });
+        btnDrop.onClick.AddListener(() => { if (gameStatus == GameStatus.RoundRuning) boardMgr.UpdateMoveingBoard(BlockOperation.Drop); });
+
+        btnSpeedUp.onPress.AddListener(() => this.IsSpeedUpBtnDown = true);
+        btnSpeedUp.onRelease.AddListener(() => this.IsSpeedUpBtnDown = false);
+
+
         boardMgr.Init(this, BOARD_WIDTH, BOARD_HEIGHT);
 
         gameStatus = GameStatus.RoundRuning;
@@ -72,6 +86,8 @@ public class BoardView : MonoBehaviour, IBoardView
         boardMgr.NextRoundStart();
     }
 
+    bool IsSpeedUpBtnDown = false;
+
     void Update()
     {
         if (gameStatus == GameStatus.RoundRuning)
@@ -79,11 +95,11 @@ public class BoardView : MonoBehaviour, IBoardView
             if (Input.GetKeyDown(KeyCode.W) || Input.GetKeyDown(KeyCode.UpArrow)) boardMgr.UpdateMoveingBoard(BlockOperation.Rotate);
             if (Input.GetKeyDown(KeyCode.A) || Input.GetKeyDown(KeyCode.LeftArrow)) boardMgr.UpdateMoveingBoard(BlockOperation.Left);
             if (Input.GetKeyDown(KeyCode.D) || Input.GetKeyDown(KeyCode.RightArrow)) boardMgr.UpdateMoveingBoard(BlockOperation.Right);
-            if (Input.GetKeyDown(KeyCode.Space)) boardMgr.UpdateMoveingBoard(BlockOperation.ToBottom);
+            if (Input.GetKeyDown(KeyCode.Space)) boardMgr.UpdateMoveingBoard(BlockOperation.Drop);
 
             // 加速下落
-            nextDownWaitingTime += Time.deltaTime;
-            if (nextDownWaitingTime > AUTO_DOWN_INTERVAL / ((Input.GetKey(KeyCode.S) || Input.GetKey(KeyCode.DownArrow)) ? 5f : 1f))
+            nextDownWaitingTime += Time.deltaTime * ((Input.GetKey(KeyCode.S) || Input.GetKey(KeyCode.DownArrow) || IsSpeedUpBtnDown) ? 5f : 1f);
+            if (nextDownWaitingTime > AUTO_DOWN_INTERVAL)
             {
                 nextDownWaitingTime = 0;
                 boardMgr.UpdateMoveingBoard(BlockOperation.Down);

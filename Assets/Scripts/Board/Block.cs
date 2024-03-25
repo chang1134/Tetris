@@ -38,8 +38,6 @@ namespace Tetris.Runtime
             }
         }
 
-        public int rotateCount = 0;
-
         public Block(BlockType type, int rotateCount)
         {
             var array = BlockMap[type];
@@ -54,7 +52,6 @@ namespace Tetris.Runtime
         // 顺时针旋转90度
         public void Rotate()
         {
-            this.rotateCount++;
             this.data = Block.Rotate(this);
             // 旋转过后，二进制数组需要重新生成
             this._bynaryArray = null;
@@ -64,7 +61,7 @@ namespace Tetris.Runtime
         {
             if (RotateBlockMap.ContainsKey(block.type))
             {
-                return block.rotateCount % 2 == 0 ? RotateBlockMap[block.type] : BlockMap[block.type];
+                return block.data == BlockMap[block.type] ? RotateBlockMap[block.type] : BlockMap[block.type];
             }
             var size = (int)Mathf.Sqrt(block.data.Length);
             int[] rotated = new int[block.data.Length];
