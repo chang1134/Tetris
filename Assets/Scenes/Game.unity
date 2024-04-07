@@ -416,7 +416,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1811158852}
-  - component: {fileID: 1811158853}
   m_Layer: 5
   m_Name: SafeArea
   m_TagString: Untagged
@@ -444,18 +443,6 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
---- !u!114 &1811158853
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1811158851}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 016787d349766a540b63d5fccc5f2988, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!1001 &696171454877642141
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -627,6 +614,10 @@ PrefabInstance:
     - target: {fileID: 5459153734649135301, guid: c20740e4e5e11b445a605d6021c83748, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5957998186429471024, guid: c20740e4e5e11b445a605d6021c83748, type: 3}
+      propertyPath: m_AnchoredPosition.y
+      value: -76.99991
       objectReference: {fileID: 0}
     - target: {fileID: 5968568891036775622, guid: c20740e4e5e11b445a605d6021c83748, type: 3}
       propertyPath: m_AnchorMax.y

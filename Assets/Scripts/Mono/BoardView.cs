@@ -40,7 +40,7 @@ public class BoardView : MonoBehaviour, IBoardView
     // 下次下移所等待的时间
     private float nextDownWaitingTime = 0;
 
-    private static float AUTO_DOWN_INTERVAL = 1f;
+    private static float AUTO_DOWN_INTERVAL = 0.5f;
 
     private GameStatus _gameStatus = GameStatus.Prepare;
 
@@ -62,6 +62,33 @@ public class BoardView : MonoBehaviour, IBoardView
         }
     }
 
+    private int _score = -1;
+
+    private int Score
+    {
+        get { return _score; }
+        set
+        {
+            if (_score == value) return;
+            _score = value;
+            this.txtScore.text = _score.ToString();
+        }
+    }
+
+    private int _eliminateCount = -1;
+
+    public int EliminateCount
+    {
+        get { return _eliminateCount; }
+        set
+        {
+            if (_eliminateCount == value) return;
+            _eliminateCount = value;
+            this.txtEliminate.text = _eliminateCount.ToString();
+        }
+    }
+
+
     public float DownInterval
     {
         get { return AUTO_DOWN_INTERVAL; }
@@ -79,6 +106,15 @@ public class BoardView : MonoBehaviour, IBoardView
 
 
         boardMgr.Init(this, BOARD_WIDTH, BOARD_HEIGHT);
+
+        StartGame();
+    }
+
+    void StartGame()
+    {
+        Score = 0;
+        EliminateCount = 0;
+
 
         gameStatus = GameStatus.RoundRuning;
 
@@ -236,8 +272,11 @@ public class BoardView : MonoBehaviour, IBoardView
         }
         var waitingTime = this.go_gridItem.GetComponent<Animation>().clip.length;
         yield return new WaitForSeconds(waitingTime);
+        Score += 4 * 3;
         if (eliminateCount > 0)
         {
+            EliminateCount += eliminateCount;
+            Score += BOARD_WIDTH * 10 * ((int)Math.Pow(2, eliminateCount) - 1);
             // 消除动画播完后，开始绘制消除后的数据
             DrawBoard(afterEliminateBoardDatas, this.go_fixed.transform, this.fixedItemMap);
         }
